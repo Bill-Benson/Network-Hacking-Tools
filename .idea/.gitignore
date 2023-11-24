@@ -1,3 +1,5 @@
 # Default ignored files
+*.code_test.py
+*.main.py
 /shelf/
 /workspace.xml
